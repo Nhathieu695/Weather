@@ -1,0 +1,102 @@
+/* WeatherDisplay.css */
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f4f8;
+    /* Màu nền nhẹ */
+}
+
+.card {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    /* Gradient từ xanh dương đến tím */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-radius: 1.5rem;
+    /* Bo góc cho card */
+    padding: 2rem;
+    margin-top: 2rem;
+    max-width: 640px;
+    /* Giới hạn chiều rộng tối đa */
+    color: white;
+    transition: all 0.5s ease-in-out;
+}
+
+.backdrop {
+    background: rgba(255, 255, 255, 0.2);
+    /* Nền trong suốt cho khung bọc */
+    backdrop-filter: blur(10px);
+    /* Hiệu ứng làm mờ nền */
+    border: 1px solid white;
+    border-radius: 1.5rem;
+    /* Bo góc cho backdrop */
+    padding: 1.5rem;
+}
+
+.title {
+    font-size: 2.5rem;
+    /* Kích thước font cho tên vị trí */
+    font-weight: bold;
+    transition: all 0.5s ease-in-out;
+}
+
+.subtitle {
+    font-size: 1.25rem;
+    /* Kích thước font cho thông tin vị trí */
+    opacity: 0.9;
+    transition: all 0.5s ease-in-out;
+}
+
+.temp {
+    font-size: 6rem;
+    /* Kích thước font cho nhiệt độ */
+    font-weight: 800;
+    /* Đậm chữ */
+    transition: all 0.5s ease-in-out;
+}
+
+.condition {
+    font-size: 2rem;
+    /* Kích thước font cho trạng thái thời tiết */
+    font-weight: 500;
+    margin-top: 1rem;
+    /* Khoảng cách trên cho trạng thái thời tiết */
+}
+
+.weather-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    /* Hai cột cho thông tin thời tiết */
+    gap: 2rem;
+    /* Khoảng cách giữa các mục */
+    margin-top: 1.5rem;
+}
+
+.info-item {
+    background: rgba(255, 255, 255, 0.3);
+    /* Nền trong suốt cho mục thông tin */
+    backdrop-filter: blur(10px);
+    /* Hiệu ứng làm mờ nền */
+    border-radius: 1rem;
+    /* Bo góc cho mục thông tin */
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.5s ease-in-out;
+}
+
+.info-label {
+    font-size: 0.875rem;
+    /* Kích thước font cho nhãn thông tin */
+    opacity: 0.8;
+    font-weight: 500;
+    /* Đậm chữ */
+}
+
+.info-value {
+    font-weight: 600;
+    /* Đậm chữ cho giá trị */
+    font-size: 1.125rem;
+    /* Kích thước font cho giá trị */
+}
