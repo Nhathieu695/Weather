@@ -9,6 +9,7 @@ const db = admin.firestore();
 
 const FCMNofitication = {
     notification: async (req, res) => {
+
         const docRef = db.collection('FCM_tokens');
         const snapshot = await docRef.get();
         if (snapshot.empty) {
