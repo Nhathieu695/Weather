@@ -1,4 +1,4 @@
-import { Outlet, Notification } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import SearchPage from './pages/search.jsx';
 import ResultsTable from './pages/results.jsx';
 import { initializeApp } from 'firebase/app';
@@ -67,7 +67,6 @@ async function getFCMToken() {
         lat,
         lng,
       });
-      showCustomNotification("FCM Token Saved!", "Your token and location have been sent to the server.");
       console.log("token", currentToken)
     } else {
       // Show permission request UI
@@ -105,26 +104,7 @@ async function getCurrentLocation() {
   }
 }
 
-// Show a custom notification
-function showCustomNotification(title, body) {
-  const options = {
-    body: body,
-    icon: "https://example.com/icon.png", // Đường dẫn tới icon
-    badge: "https://example.com/badge.png", // Badge nhỏ
-    vibrate: [200, 100, 200], // Rung: 200ms -> 100ms -> 200ms
-    actions: [
-      { action: "open_app", title: "Open App" },
-      { action: "dismiss", title: "Dismiss" }
-    ]
-  };
 
-  const notification = new Notification(title, options);
-
-  notification.onclick = () => {
-    console.log("Notification clicked!");
-    window.focus(); // Mở lại cửa sổ nếu bị thu nhỏ
-  };
-}
 
 
 
