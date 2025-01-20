@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom';
 import SearchPage from './pages/search.jsx';
 import ResultsTable from './pages/results.jsx';
 import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, } from "firebase/messaging";
+import { getMessaging, getToken } from "firebase/messaging";
 import axios from 'axios';
 
 
@@ -15,22 +15,25 @@ const firebaseConfig = {
   appId: "1:383747542029:web:7187e7107fee6b61175944",
   measurementId: "G-QLED0X19GE"
 };
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Register Service Worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/firebase-messaging-sw.js')
-    .then((registration) => {
-      console.log('Service Worker registered with scope:', registration.scope);
-    }).catch((error) => {
-      console.error('Service Worker registration failed:', error);
-    });
-}
-
 const messaging = getMessaging(app);
+
 function App() {
   requestPermission()
+  // Register Service Worker
+
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/firebase-messaging-sw.js')
+      .then((registration) => {
+        console.log('Service Worker registered with scope:', registration.scope);
+      }).catch((error) => {
+        console.error('Service Worker registration failed:', error);
+      });
+  }
   return (
     <>
       <Outlet />
@@ -54,7 +57,7 @@ async function getFCMToken() {
   // Get registration token. Initially this makes a network call, once retrieved
   // subsequent calls to getToken will return from cache.
 
-  const messaging = getMessaging();
+  const messaging = getMessaging(app);
   await getToken(messaging, { vapidKey: 'BBVw62MzPZzjgPqBQsrm3NvOkFTdJphhvDrkjC-9Gtze-ylHBrT0_rlDAAcAX-f0N01dbMrv3fZcgcVuMEXWfsg' }).then(async (currentToken) => {
     if (currentToken) {
       // Send the token to your server and update the UI if necessary
@@ -88,7 +91,7 @@ async function getCurrentLocation() {
     const position = await new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject, {
         enableHighAccuracy: true,
-        timeout: 10000, // 10 seconds
+        timeout: 100000, // 10 seconds
         maximumAge: 0,
       });
     });
@@ -103,9 +106,5 @@ async function getCurrentLocation() {
     throw new Error(message);
   }
 }
-
-
-
-
 
 export default App;
