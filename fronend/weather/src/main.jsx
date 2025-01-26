@@ -7,9 +7,10 @@ import {
 import App from './App.jsx';
 import SearchPage from './pages/search.jsx';
 import ResultsTable from './pages/results.jsx';
-import WeatherPage from './pages/weather.jsx'
-
-
+import WeatherPage from './pages/weather.jsx';
+import LoginPage from './pages/login.jsx';
+import RegisterPage from './pages/register.jsx';
+import { UserProvider } from "../usercontext.jsx"
 const router = createBrowserRouter([
   {
     path: "/",
@@ -27,12 +28,22 @@ const router = createBrowserRouter([
         path: "/weather",
         element: <WeatherPage />,
       },
+      {
+        path: "/login", // Route cho trang đăng nhập
+        element: <LoginPage />,
+      },
+      {
+        path: "/register", // Route cho trang đăng ký
+        element: <RegisterPage />,
+      },
     ],
   },
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <UserProvider>
+      <RouterProvider router={router} />
+    </UserProvider>
   </React.StrictMode>
 );

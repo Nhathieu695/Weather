@@ -1,0 +1,86 @@
+.login-body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.login-container {
+    background-color: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    text-align: center;
+}
+
+.login-header {
+    margin-bottom: 20px;
+}
+
+.login-title {
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: border-color 0.3s;
+}
+
+.input:focus {
+    border-color: #6a11cb;
+    outline: none;
+}
+
+.button {
+    width: 100%;
+    padding: 10px;
+    background-color: #6a11cb;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.button:hover {
+    background-color: #2575fc;
+}
+
+.error {
+    color: red;
+    margin-bottom: 15px;
+}
+
+.login-footer {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.login-footer a {
+    color: #6a11cb;
+    text-decoration: none;
+}
+
+.login-footer a:hover {
+    text-decoration: underline;
+}
