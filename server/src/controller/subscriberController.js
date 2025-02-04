@@ -3,7 +3,7 @@ const User = require('../models/user');
 const Cities = require('../models/cities');
 const axios = require('axios');
 const nodemailer = require('nodemailer');
-
+const cron = require('node-cron');
 // Cấu hình Mailtrap SMTP
 const transporter = nodemailer.createTransport({
     host: process.env.MAILTRAP_HOST,
@@ -78,10 +78,16 @@ const subscriberController = {
     // Gửi thông báo thời tiết
     sendWeatherNotification: async () => {
         try {
-            const subscribers = await Subscriber.find().populate('userId cityId'); // Lấy danh sách subscriber và thông tin người dùng, thành phố
+            const subscribers = await Subscriber.find().populate('userId cityId');
+            const userNotifications = {};
+
             for (const subscriber of subscribers) {
-                const city = subscriber.cityId; // Thành phố đã đăng ký
-                const user = subscriber.userId; // Người dùng đã đăng ký
+                const city = subscriber.cityId;
+                const user = subscriber.userId;
+
+                if (!userNotifications[user._id]) {
+                    userNotifications[user._id] = [];
+                }
 
                 // Lấy thông tin thời tiết từ API
                 const weatherApiKey = process.env.WEATHER_API_KEY;
@@ -90,12 +96,24 @@ const subscriberController = {
                 );
                 const weather = response.data;
 
-                // Gửi email thông báo thời tiết
+                // Thêm thông báo vào danh sách của người dùng
+                userNotifications[user._id].push({
+                    city: city.city,
+                    temperature: weather.main.temp,
+                    description: weather.weather[0].description,
+                });
+            }
+
+            // Gửi email cho từng người dùng
+            for (const userId in userNotifications) {
+                const user = await User.findById(userId);
+                const notifications = userNotifications[userId];
+
                 const mailOptions = {
                     from: '"Weather App" <no-reply@weather.com.vn>',
                     to: user.email,
-                    subject: `Dự báo thời tiết cho ${city.city}`,
-                    text: `Dự báo thời tiết cho ${city.city}:\nNhiệt độ: ${weather.main.temp}°C\nTrạng thái: ${weather.weather[0].description}`,
+                    subject: 'Dự báo thời tiết cho các thành phố bạn đã đăng ký',
+                    text: notifications.map(n => `Dự báo thời tiết cho ${n.city}:\nNhiệt độ: ${n.temperature}°C\nTrạng thái: ${n.description}`).join('\n\n'),
                 };
 
                 try {
@@ -109,6 +127,38 @@ const subscriberController = {
             console.error('Lỗi khi gửi thông báo thời tiết:', error);
         }
     },
-};
+
+
+    // Lấy thông tin đăng ký
+    // Lấy tất cả đăng ký của một người dùng
+    getAllSubscriptionsByUserId: async (req, res) => {
+        const { userId } = req.params;
+
+        // Kiểm tra xem userId có tồn tại và hợp lệ không
+        if (!userId) {
+            return res.status(400).json({ message: 'userId không hợp lệ' });
+        }
+
+        try {
+            const subscriptions = await Subscriber.find({ userId }).populate('cityId');
+
+            // Kiểm tra xem có đăng ký nào không
+            if (subscriptions.length === 0) {
+                return res.status(404).json({ message: 'Không tìm thấy đăng ký nào cho người dùng này' });
+            }
+
+            return res.status(200).json(subscriptions);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: 'Lỗi máy chủ' });
+        }
+    }
+
+}
+
+cron.schedule('0 20 * * 6', () => {
+    console.log('Gửi thông báo thời tiết vào 8h tối thứ Bảy');
+    subscriberController.sendWeatherNotification();
+});
 
 module.exports = subscriberController;

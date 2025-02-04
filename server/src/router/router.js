@@ -24,6 +24,9 @@ router.post('/subscribe', subscriberController.subscribe);
 // Route hủy đăng ký
 router.post('/unsubscribe', subscriberController.unsubscribe);
 
+// Route lấy thông tin đăng ký
+router.get('/subscriptions/:userId', subscriberController.getAllSubscriptionsByUserId);
+
 // Route list cities
 router.get('/listcities', cityController.findAll);
 

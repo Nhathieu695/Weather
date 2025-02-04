@@ -16,10 +16,20 @@ export default function SearchPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [meta, setMeta] = useState({ current: 1, pageSize: 10, pages: 1, total: 0 });
+    const [subscriptions, setSubscriptions] = useState(new Set());
 
     useEffect(() => {
         fetchCities();
-    }, []);
+        if (user) {
+            // Lấy subscriptions từ localStorage khi người dùng đăng nhập
+            const storedSubscriptions = localStorage.getItem('subscriptions');
+            if (storedSubscriptions) {
+                setSubscriptions(new Set(JSON.parse(storedSubscriptions)));
+            } else {
+                fetchSubscriptions(); // Lấy subscriptions từ API nếu không có trong localStorage
+            }
+        }
+    }, [user]);
 
     const fetchCities = async (page = 1, limit = 10) => {
         setLoading(true);
@@ -29,13 +39,26 @@ export default function SearchPage() {
             const response = await axios.get("http://localhost:8080/listcities", {
                 params: { CurrentPage: page, limit },
             });
-            setAllCities(response.data.result); // Lưu danh sách thành phố gốc
-            setFilteredCities(response.data.result); // Đặt danh sách thành phố được lọc bằng danh sách gốc
+            setAllCities(response.data.result);
+            setFilteredCities(response.data.result);
             setMeta(response.data.meta);
         } catch (error) {
             setError(error.response?.data || "Failed to fetch cities");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchSubscriptions = async () => {
+        if (user) {
+            try {
+                const response = await axios.get(`http://localhost:8080/subscriptions/${user._id}`);
+                const subscribedCities = response.data.map(city => city._id);
+                localStorage.setItem('subscriptions', JSON.stringify(subscribedCities)); // Lưu subscriptions vào localStorage
+                setSubscriptions(new Set(subscribedCities));
+            } catch (error) {
+                console.error("Lỗi khi lấy danh sách đăng ký:", error.response?.data || error.message);
+            }
         }
     };
 
@@ -53,7 +76,6 @@ export default function SearchPage() {
     };
 
     const handleCityClick = (city) => {
-        // Kiểm tra và lấy giá trị lat và lng đúng cách
         const latitude = city.lat?.$numberDecimal || city.lat;
         const longitude = city.lng?.$numberDecimal || city.lng;
 
@@ -67,10 +89,6 @@ export default function SearchPage() {
         });
     };
 
-    const handlePageChange = (newPage) => {
-        fetchCities(newPage, meta.pageSize);
-    };
-
     const handleLogout = async (e) => {
         e.preventDefault();
         try {
@@ -82,6 +100,50 @@ export default function SearchPage() {
             console.error("Lỗi khi đăng xuất:", error.response?.data || error.message);
         }
     };
+
+    const handleSubscribe = async (city, event) => {
+        event.stopPropagation();
+
+        try {
+            const response = await axios.post("http://localhost:8080/subscribe", {
+                userId: user._id,
+                cityId: city._id
+            });
+
+            console.log(response.data.message);
+            setSubscriptions((prev) => {
+                const updated = new Set(prev).add(city._id);
+                localStorage.setItem('subscriptions', JSON.stringify(Array.from(updated))); // Lưu subscriptions vào localStorage
+                return updated;
+            });
+
+            await axios.post("http://localhost:8080/send-weather-notifications");
+        } catch (error) {
+            console.error("Lỗi khi đăng ký:", error.response?.data || error.message);
+        }
+    };
+
+    const handleUnsubscribe = async (city, event) => {
+        event.stopPropagation();
+
+        try {
+            await axios.post("http://localhost:8080/unsubscribe", {
+                userId: user._id,
+                cityId: city._id
+            });
+
+            console.log("Hủy đăng ký thành công");
+            setSubscriptions((prev) => {
+                const updated = new Set(prev);
+                updated.delete(city._id);
+                localStorage.setItem('subscriptions', JSON.stringify(Array.from(updated))); // Cập nhật subscriptions vào localStorage
+                return updated;
+            });
+        } catch (error) {
+            console.error("Lỗi khi hủy đăng ký:", error.response?.data || error.message);
+        }
+    };
+
 
     const renderPagination = () => {
         const pages = [];
@@ -147,16 +209,18 @@ export default function SearchPage() {
                 {loading && <p>Loading...</p>}
                 {error && <p className="text-red-500">{error}</p>}
 
-                <table className="table-auto w-full mt-4 border-collapse border border-gray-200">
-                    <thead className="bg-gray-200">
+                <table className="border border-gray-300 px-4 py-2 text-blue-500 shadow">
+                    <thead className="bg-white">
                         <tr>
-                            <th className="border border-gray-300 px-4 py-2">City</th>
-                            <th className="border border-gray-300 px-4 py-2">Name</th>
-                            <th className="border border-gray-300 px-4 py-2">Country</th>
-                            <th className="border border-gray-300 px-4 py-2">Latitude</th>
-                            <th className="border border-gray-300 px-4 py-2">Longitude</th>
+                            <th className="border border-gray-300 px-4 py-2 text-blue-500">City</th>
+                            <th className="border border-gray-300 px-4 py-2 text-blue-500">Name</th>
+                            <th className="border border-gray-300 px-4 py-2 text-blue-500">Country</th>
+                            <th className="border border-gray-300 px-4 py-2 text-blue-500">Latitude</th>
+                            <th className="border border-gray-300 px-4 py-2 text-blue-500">Longitude</th>
+                            <th className="border border-gray-300 px-4 py-2 text-blue-500">Subscribe</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         {filteredCities.length > 0 ? (
                             filteredCities.map((city) => (
@@ -166,41 +230,29 @@ export default function SearchPage() {
                                     <td className="border border-gray-300 px-4 py-2">{city.country}</td>
                                     <td className="border border-gray-300 px-4 py-2">{city.lat?.$numberDecimal || city.lat}</td>
                                     <td className="border border-gray-300 px-4 py-2">{city.lng?.$numberDecimal || city.lng}</td>
+                                    <td className="border border-gray-300 px-4 py-2 subscribe-table-cell-center">
+                                        {subscriptions.has(city._id) ? (
+                                            <Button className="subscribe-button" onClick={(event) => handleUnsubscribe(city, event)}>
+                                                Hủy đăng ký
+                                            </Button>
+                                        ) : (
+                                            <Button className="subscribe-button" onClick={(event) => handleSubscribe(city, event)}>
+                                                Đăng ký
+                                            </Button>
+                                        )}
+                                    </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="5" className="text-center border border-gray-300 px-4 py-2">Không có kết quả nào phù hợp</td>
+                                <td colSpan={6} className="border border-gray-300 px-4 py-2 text-center">Không có thành phố nào được tìm thấy.</td>
                             </tr>
                         )}
                     </tbody>
                 </table>
 
-                <div className="pagination mt-4 flex justify-center items-center gap-4">
-                    {meta.current > 1 && (
-                        <button
-                            onClick={() => handlePageChange(meta.current - 1)}
-                            className="pagination-button"
-                        >
-                            Previous
-                        </button>
-                    )}
+                <div className="pagination flex justify-center mt-4">
                     {renderPagination()}
-                    {meta.current < meta.pages && (
-                        <button
-                            onClick={() => handlePageChange(meta.current + 1)}
-                            className="pagination-button"
-                        >
-                            Next
-                        </button>
-                    )}
-                    <button
-                        onClick={() => handlePageChange(meta.pages)}
-                        disabled={meta.current >= meta.pages}
-                        className="pagination-button"
-                    >
-                        Trang cuối
-                    </button>
                 </div>
             </div>
         </div>
