@@ -8,7 +8,8 @@ export default defineConfig({
     sourcemap: true, // Bật source map cho quá trình build
   },
   server: {
-    sourcemap: true, // Bật source map cho quá trình phát triển
+    host: '0.0.0.0', // Lắng nghe trên mọi địa chỉ IP
+    port: 5173, // Cổng bạn muốn sử dụng
     cors: true,
   },
 })
